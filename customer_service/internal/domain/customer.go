@@ -13,6 +13,12 @@ type Customer struct {
 	Password string        `bson:"password" json:"-"`
 }
 
+type CustomerRequest struct {
+	Name  string `bson:"name" json:"name"`
+	Email string `bson:"email" json:"email"`
+	Phone string `bson:"phone" json:"phone"`
+}
+
 type CustomerRegister struct {
 	Name     string `bson:"name" json:"name"`
 	Email    string `bson:"email" json:"email"`
