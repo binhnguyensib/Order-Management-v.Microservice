@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option go_package = "cart_service/proto/customer";
+
+package customer;
+
+service CustomerService {
+    rpc GetAll(GetAllRequest) returns (GetAllResponse);
+    rpc GetById(GetByIdRequest) returns (GetByIdResponse);
+}
+
+message Customer {
+    string id = 1;
+    string name = 2;
+    string email = 3;
+    string phone = 4;
+}
+
+message GetAllRequest{
+    
+}
+
+message GetAllResponse {
+    repeated Customer customers = 1;
+}
+
+message GetByIdRequest{
+    string id = 1;
+}
+
+message GetByIdResponse{
+    Customer customer = 1;
+}

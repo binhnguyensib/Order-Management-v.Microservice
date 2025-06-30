@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option go_package = "cart_service/proto/cart";
+
+package cart;
+
+//import "customer/customer.proto";
+//import "product/product.proto";
+
+
+service CartService {
+    rpc AddToCart(AddToCartRequest) returns (AddToCartResponse);
+    rpc GetCartByCustomerId(GetCartByCustomerIdRequest) returns (GetCartByCustomerIdResponse);
+}
+
+message CartItemRequest {
+    string product_id = 1;
+    string product_name = 2;
+    int32 quantity = 3;
+}
+
+message CartItem{
+    string product_id = 1;
+    string product_name = 2;
+    float product_price = 3;
+    int32 quantity = 4;
+    float subtotal = 5;
+}
+
+message Cart {
+    string id = 1;
+    string customer_id = 2;
+    repeated CartItem cartItem = 3;
+    int32 totalItem = 4;
+    float totalPrice = 5;
+}
+
+message AddToCartRequest{
+    string customer_id = 1;
+    CartItemRequest cartItemRequest = 2;
+}
+
+message AddToCartResponse{
+    Cart cart = 1;
+}
+
+message GetCartByCustomerIdRequest{
+    string customer_id = 1;
+}
+
+message GetCartByCustomerIdResponse{
+    Cart cart = 1;
+}
