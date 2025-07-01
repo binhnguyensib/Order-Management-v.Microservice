@@ -1,19 +1,26 @@
-package serviceconn
+package handler
 
 import (
 	"cart_service/internal/domain"
+	"cart_service/internal/usecase/helper"
 	pb "cart_service/proto/cart"
-	"cart_service/service_conn/helper"
 	"context"
 )
 
-type cartServiceServer struct {
+type cartGRPCHandler struct {
 	pb.UnimplementedCartServiceServer
 	cartUsecase domain.CartUsecase
 	cartMapper  helper.CartMapper
 }
 
-func (css *cartServiceServer) AddToCart(ctx context.Context, req *pb.AddToCartRequest) (*pb.AddToCartResponse, error) {
+func NewCartGRPCHandler(cartUsecase domain.CartUsecase, cartMapper helper.CartMapper) *cartGRPCHandler {
+	return &cartGRPCHandler{
+		cartUsecase: cartUsecase,
+		cartMapper:  cartMapper,
+	}
+}
+
+func (css *cartGRPCHandler) AddToCart(ctx context.Context, req *pb.AddToCartRequest) (*pb.AddToCartResponse, error) {
 	cartItemRequest := css.cartMapper.ToCartItemRequest(req.CartItemRequest)
 
 	cart, err := css.cartUsecase.AddToCart(ctx, req.CustomerId, cartItemRequest)

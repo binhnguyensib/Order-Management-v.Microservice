@@ -4,6 +4,7 @@ import (
 	"customer_service/config"
 	"customer_service/grpc"
 	"customer_service/internal/repository"
+	"log"
 	"net"
 	"os"
 
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	rpc "google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func Run() {
@@ -25,16 +27,21 @@ func Run() {
 	customerRepo := repository.NewCustomerRepository(db.DB)
 	customerUsecase := usecase.NewCustomerUsecase(customerRepo)
 	customerHandler := handler.NewCustomerHandler(customerUsecase)
-
-	lis, err := net.Listen("tcp", ":"+string(os.Getenv("GRPC_PORT")))
+	grpcPort := os.Getenv("GRPC_PORT")
+	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
 		panic(err)
 	}
 	grpcServer := rpc.NewServer()
 	customerGRPCHandler := grpc.NewCustomerGRPCHandler(customerUsecase)
 	cs.RegisterCustomerServiceServer(grpcServer, customerGRPCHandler)
-	grpcServer.Serve(lis)
-
+	reflection.Register(grpcServer)
+	go func() {
+		log.Printf("gRPC Server listening on :%s", grpcPort)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC: %v", err)
+		}
+	}()
 	router := gin.Default()
 
 	router.GET("/health", func(c *gin.Context) {

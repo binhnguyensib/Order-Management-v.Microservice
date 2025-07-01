@@ -10,6 +10,7 @@ type CartMapper interface {
 	ToCartItemRequest(*cs.CartItemRequest) *domain.CartItemRequest
 	//ToProtoCartItem(*domain.CartItem) *cs.CartItem
 	ToProtoCart(*domain.Cart) *cs.Cart
+	//ToProduct(*ps.GetByIdRequest)
 }
 
 type cartMapper struct {
