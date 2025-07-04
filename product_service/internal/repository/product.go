@@ -2,15 +2,21 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"product_service/internal/domain"
+	"time"
 
+	rdis "product_service/config"
+
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var _ domain.ProductRepository = (*productRepositoryImpl)(nil)
+var Logger = logrus.New()
 
 type productRepositoryImpl struct {
 	conn *mongo.Database
@@ -47,6 +53,15 @@ func (pr *productRepositoryImpl) GetAll(ctx context.Context) ([]*domain.Product,
 }
 
 func (pr *productRepositoryImpl) GetByID(ctx context.Context, id string) (*domain.Product, error) {
+	redisKey := fmt.Sprintf("product:%s", id)
+	cached, err := rdis.Get(ctx, redisKey)
+	if err == nil && cached != "" {
+		var p domain.Product
+		if ummarshalErr := json.Unmarshal([]byte(cached), &p); ummarshalErr == nil {
+			fmt.Println("Cache hit for", redisKey)
+			return &p, nil
+		}
+	}
 	collection := pr.conn.Collection("products")
 	var product domain.Product
 	objectID, err := bson.ObjectIDFromHex(id)
@@ -62,6 +77,17 @@ func (pr *productRepositoryImpl) GetByID(ctx context.Context, id string) (*domai
 		return nil, err
 	}
 
+	bytes, marshalErr := json.Marshal(product)
+	if marshalErr == nil {
+		go func() {
+			ctxBg := context.Background()
+			rdis.Set(ctxBg, redisKey, bytes, time.Hour)
+		}()
+	}
+	Logger.WithFields(
+		logrus.Fields{
+			"method": "GetByID",
+			"id":     id}).Info("Fetch product from DB")
 	return &product, nil
 }
 
@@ -75,6 +101,11 @@ func (pr *productRepositoryImpl) Create(ctx context.Context, product *domain.Pro
 	if !ok {
 		return nil, fmt.Errorf("failed to convert inserted ID to ObjectID: %v", result.InsertedID)
 	}
+
+	Logger.WithFields(logrus.Fields{
+		"method": "Create",
+		"id":     productID,
+	}).Info("Add new product successfully")
 
 	createdProduct := &domain.Product{
 		Id:    productID,
@@ -114,10 +145,21 @@ func (pr *productRepositoryImpl) Update(ctx context.Context, id string, productR
 		return nil, result.Err()
 	}
 
+	Logger.WithFields(logrus.Fields{
+		"method": "Update",
+		"id":     id,
+	}).Info("Update product successfully")
+
 	var updatedProduct domain.Product
 	if err := result.Decode(&updatedProduct); err != nil {
 		return nil, err
 	}
+
+	redisKey := fmt.Sprintf("product:%s", id)
+	go func() {
+		ctxBg := context.Background()
+		rdis.Del(ctxBg, redisKey)
+	}()
 
 	return &updatedProduct, nil
 }
@@ -137,10 +179,21 @@ func (pr *productRepositoryImpl) Delete(ctx context.Context, id string) (*domain
 		return nil, result.Err()
 	}
 
+	Logger.WithFields(logrus.Fields{
+		"method": "Delete",
+		"id":     id,
+	}).Info("Delete product successfully")
+
 	var deletedProduct domain.Product
 	if err := result.Decode(&deletedProduct); err != nil {
 		return nil, err
 	}
+
+	redisKey := fmt.Sprintf("product:%s", id)
+	go func() {
+		ctxBg := context.Background()
+		rdis.Del(ctxBg, redisKey)
+	}()
 
 	return &deletedProduct, nil
 }

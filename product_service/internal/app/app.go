@@ -1,10 +1,10 @@
 package app
 
 import (
-	"log"
 	"net"
 	"os"
 	"product_service/config"
+	_ "product_service/docs"
 	"product_service/grpc"
 	"product_service/internal/handler"
 	"product_service/internal/repository"
@@ -12,16 +12,29 @@ import (
 	pb "product_service/proto"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	rpc "google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
+// @title Order Management API
+// @version Microservice
+// @description This is a sample server for managing orders, customers, products, and carts.
+// @host localhost:8082
+// @BasePath /api
+var Logger = logrus.New()
+
 func Run() {
+	Logger.SetFormatter(&logrus.TextFormatter{})
 	db, err := config.ConnectMongoDB()
 	if err != nil {
-		panic("Error connecting to database")
+		Logger.Error("Error when connecting to MongoDB")
 	}
 	defer db.Close()
+
+	config.InitRedis()
 
 	productRepo := repository.NewProductRepository(db.DB)
 	productUsecase := usecase.NewProductUsecase(productRepo)
@@ -31,16 +44,16 @@ func Run() {
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 
 	if err != nil {
-		print("error when starting gRPC")
+		Logger.Error("Error when starting gRPC server")
 	}
 	grpcServer := rpc.NewServer()
 	productGRPCHandler := grpc.NewProductGRPCHandler(productUsecase)
 	pb.RegisterProductServiceServer(grpcServer, productGRPCHandler)
 	reflection.Register(grpcServer)
 	go func() {
-		log.Printf("gRPC Server listening on :%s", grpcPort)
+		Logger.Infof("gRPC server start at port :%s", grpcPort)
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve gRPC: %v", err)
+			Logger.Errorf("Failed to serve gRPC: %v", err)
 		}
 	}()
 
@@ -51,6 +64,9 @@ func Run() {
 			"message": "Product-Service is running",
 		})
 	})
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	api := router.Group("/api")
 	{
 		api.GET("/products", productHandler.GetAll)
