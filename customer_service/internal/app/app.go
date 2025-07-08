@@ -36,6 +36,8 @@ func Run() {
 	}
 	defer db.Close()
 
+	config.InitRedis()
+
 	customerRepo := repository.NewCustomerRepository(db.DB)
 	customerUsecase := usecase.NewCustomerUsecase(customerRepo)
 	customerHandler := handler.NewCustomerHandler(customerUsecase)

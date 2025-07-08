@@ -2,15 +2,23 @@ package repository
 
 import (
 	"context"
+	rdis "customer_service/config"
 	"customer_service/internal/domain"
+	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-var _ domain.CustomerRepository = (*customerRepositoryImpl)(nil)
+var (
+	_      domain.CustomerRepository = (*customerRepositoryImpl)(nil)
+	Logger                           = logrus.New()
+)
 
 type customerRepositoryImpl struct {
 	conn *mongo.Database
@@ -42,6 +50,15 @@ func (cr *customerRepositoryImpl) GetAll(ctx context.Context) ([]*domain.Custome
 }
 
 func (cr *customerRepositoryImpl) GetByID(ctx context.Context, id string) (*domain.Customer, error) {
+	redisKey := fmt.Sprintf("customer:%s", id)
+	cached, err := rdis.Get(ctx, redisKey)
+	if err == nil && cached != "" {
+		var c domain.Customer
+		if ummarshalErr := json.Unmarshal([]byte(cached), &c); ummarshalErr == nil {
+			Logger.Info("Cache hit for", redisKey)
+			return &c, nil
+		}
+	}
 	collection := cr.conn.Collection("customers")
 	var customer domain.Customer
 	ObjectID, ok := bson.ObjectIDFromHex(id)
@@ -49,13 +66,24 @@ func (cr *customerRepositoryImpl) GetByID(ctx context.Context, id string) (*doma
 		log.Printf("Error converting ID to ObjectID: %v", ok)
 		return nil, ok
 	}
-	err := collection.FindOne(ctx, bson.M{"_id": ObjectID}).Decode(&customer)
+	err = collection.FindOne(ctx, bson.M{"_id": ObjectID}).Decode(&customer)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, err
 		}
 		return nil, err
 	}
+	bytes, marshalErr := json.Marshal(customer)
+	if marshalErr == nil {
+		go func() {
+			ctxBg := context.Background()
+			rdis.Set(ctxBg, redisKey, bytes, time.Hour)
+		}()
+	}
+	Logger.WithFields(
+		logrus.Fields{
+			"method": "GetByID",
+			"id":     id}).Info("Fetch product from DB")
 	return &customer, nil
 }
 
@@ -69,6 +97,11 @@ func (cr *customerRepositoryImpl) Create(ctx context.Context, customer *domain.C
 	if !ok {
 		return nil, fmt.Errorf("failed to convert inserted ID to ObjectID")
 	}
+
+	Logger.WithFields(logrus.Fields{
+		"method": "Create",
+		"id":     customerID,
+	}).Info("Add new product successfully")
 
 	createdCustomer := &domain.Customer{
 		Id:    customerID,
@@ -101,16 +134,33 @@ func (cr *customerRepositoryImpl) Update(ctx context.Context, id string, custome
 
 	update := bson.M{"$set": updateFields}
 
-	result, err := collection.UpdateOne(ctx, bson.M{"_id": ObjectID}, update)
-	if err != nil {
+	otps := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	result := collection.FindOneAndUpdate(ctx, bson.M{"_id": ObjectID}, update, otps)
+	if result.Err() != nil {
+
+		if result.Err() == mongo.ErrNoDocuments {
+			return nil, result.Err()
+		}
+		return nil, result.Err()
+	}
+
+	Logger.WithFields(logrus.Fields{
+		"method": "Update",
+		"id":     id,
+	}).Info("Update customer successfully")
+
+	var updatedCustomer domain.Customer
+	if err := result.Decode(&updatedCustomer); err != nil {
 		return nil, err
 	}
 
-	if result.MatchedCount == 0 {
-		return nil, err
-	}
+	redisKey := fmt.Sprintf("customer:%s", id)
+	go func() {
+		ctxBg := context.Background()
+		rdis.Del(ctxBg, redisKey)
+	}()
 
-	return cr.GetByID(ctx, id)
+	return &updatedCustomer, nil
 }
 
 func (cr *customerRepositoryImpl) Delete(ctx context.Context, id string) (*domain.Customer, error) {
@@ -130,5 +180,16 @@ func (cr *customerRepositoryImpl) Delete(ctx context.Context, id string) (*domai
 		}
 		return nil, err
 	}
+	Logger.WithFields(logrus.Fields{
+		"method": "Delete",
+		"id":     id,
+	}).Info("Delete customer successfully")
+
+	redisKey := fmt.Sprintf("customer:%s", id)
+	go func() {
+		ctxBg := context.Background()
+		rdis.Del(ctxBg, redisKey)
+	}()
+
 	return &deletedCustomer, nil
 }
