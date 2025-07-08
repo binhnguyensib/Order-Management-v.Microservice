@@ -27,7 +27,9 @@ func Run() {
 	router.Use(gin.Logger())
 	router.Use(middleware.SetupCORS())
 	router.Static("/swagger-ui", "./static/swagger-ui")
+	router.GET("/swagger/cart_service.json", middleware.ProxySwaggerDoc("http://localhost:8083/swagger/doc.json"))
 	router.GET("/swagger/product_service.json", middleware.ProxySwaggerDoc("http://localhost:8082/swagger/doc.json"))
+	router.GET("/swagger/customer_service.json", middleware.ProxySwaggerDoc("http://localhost:8081/swagger/doc.json"))
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -42,6 +44,8 @@ func Run() {
 
 	}
 	api.Any("/product_service/*proxyPath", middleware.ReverseProxyMiddleware(os.Getenv("PRODUCT_SERVICE_HOST"), "/api/product_service"))
+	api.Any("/customer_service/*proxyPath", middleware.ReverseProxyMiddleware(os.Getenv("CUSTOMER_SERVICE_HOST"), "/api/customer_service"))
+	api.Any("/cart_service/*proxyPath", middleware.ReverseProxyMiddleware(os.Getenv("CART_SERVICE_HOST"), "/api/cart_service"))
 
 	port := os.Getenv("PORT")
 	if port == "" {

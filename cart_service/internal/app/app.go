@@ -2,6 +2,7 @@ package app
 
 import (
 	"cart_service/config"
+	_ "cart_service/docs"
 	"cart_service/internal/handler"
 	"cart_service/internal/repository"
 	"cart_service/internal/usecase"
@@ -13,11 +14,18 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 )
 
+// @title Order Management API
+// @version Microservice
+// @description This is a sample server for managing orders, customers, products, and carts.
+// @host localhost:8083
+// @BasePath /api
 func Run() {
 	db, err := config.ConnectMongoDB()
 	if err != nil {
@@ -58,9 +66,15 @@ func Run() {
 			"message": "Cart is running",
 		})
 	})
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	api := router.Group("/api")
 	{
 		api.POST("/carts/:id", cartHandler.AddToCart)
+		api.GET("/carts/:id", cartHandler.GetCartByCustomerId)
+		api.DELETE("/carts/:id", cartHandler.ClearCart)
+		api.PUT("/carts/item", cartHandler.UpdateCartItem)
+		api.DELETE("/carts/:id/item/:product_id", cartHandler.RemoveCartItem)
 	}
 	port := os.Getenv("PORT")
 	if port == "" {

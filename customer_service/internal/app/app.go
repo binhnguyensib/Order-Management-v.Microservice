@@ -2,25 +2,37 @@ package app
 
 import (
 	"customer_service/config"
+	_ "customer_service/docs"
 	"customer_service/grpc"
+	"customer_service/internal/handler"
 	"customer_service/internal/repository"
-	"log"
+	"customer_service/internal/usecase"
+	cs "customer_service/proto"
 	"net"
 	"os"
 
-	"customer_service/internal/handler"
-	"customer_service/internal/usecase"
-	cs "customer_service/proto"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	rpc "google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
+// @title Order Management API
+// @version Microservice
+// @description This is a sample server for managing orders, customers, products, and carts.
+// @host localhost:8081
+// @BasePath /api
+
+var Logger = logrus.New()
+
 func Run() {
+	Logger.SetFormatter(&logrus.TextFormatter{})
 	db, err := config.ConnectMongoDB()
 	if err != nil {
-		panic("Error connecting to database")
+		Logger.Error("Error when connecting to MongoDB")
 	}
 	defer db.Close()
 
@@ -30,16 +42,16 @@ func Run() {
 	grpcPort := os.Getenv("GRPC_PORT")
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
-		panic(err)
+		Logger.Error("Error when starting gRPC server")
 	}
 	grpcServer := rpc.NewServer()
 	customerGRPCHandler := grpc.NewCustomerGRPCHandler(customerUsecase)
 	cs.RegisterCustomerServiceServer(grpcServer, customerGRPCHandler)
 	reflection.Register(grpcServer)
 	go func() {
-		log.Printf("gRPC Server listening on :%s", grpcPort)
+		Logger.Infof("gRPC server start at port :%s", grpcPort)
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve gRPC: %v", err)
+			Logger.Errorf("Failed to serve gRPC: %v", err)
 		}
 	}()
 	router := gin.Default()
@@ -50,6 +62,8 @@ func Run() {
 			"message": "Customer-Service is running",
 		})
 	})
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api")
 	{

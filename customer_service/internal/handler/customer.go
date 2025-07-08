@@ -17,6 +17,16 @@ func NewCustomerHandler(customerUsecase domain.CustomerUsecase) *customerHandler
 	}
 }
 
+// GetAll godoc
+// @Summary Get all customers
+// @Description Retrieve all customers
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Customer
+// @Failure 500
+// @Failure 400
+// @Router /api/customer_service/customers [get]
 func (ch *customerHandler) GetAll(c *gin.Context) {
 	customers, err := ch.customerUsecase.GetAll(c.Request.Context())
 	if err != nil {
@@ -32,6 +42,17 @@ func (ch *customerHandler) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, customers)
 }
 
+// GetByID godoc
+// @Summary Get customer by ID
+// @Description Retrieve a customer by their ID
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param id path string true "Customer ID"
+// @Success 200 {object} domain.Customer
+// @Failure 400
+// @Failure 500
+// @Router /api/customer_service/customers/{id} [get]
 func (ch *customerHandler) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -54,6 +75,17 @@ func (ch *customerHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, customer)
 }
 
+// Create godoc
+// @Summary Create a new customer
+// @Description Create a new customer with the provided details
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param customer body domain.CustomerRequest true "Customer details"
+// @Success 201 {object} domain.Customer
+// @Failure 400
+// @Failure 500
+// @Router /api/customer_service/customers [post]
 func (ch *customerHandler) Create(c *gin.Context) {
 	var customerReq domain.CustomerRequest
 	if err := c.ShouldBindJSON(&customerReq); err != nil {
@@ -72,6 +104,18 @@ func (ch *customerHandler) Create(c *gin.Context) {
 		"customer": customer})
 }
 
+// Update godoc
+// @Summary Update an existing customer
+// @Description Update an existing customer with the provided details
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param id path string true "Customer ID"
+// @Param customer body domain.CustomerRequest true "Customer details"
+// @Success 200 {object} domain.Customer
+// @Failure 400
+// @Failure 500
+// @Router /api/customer_service/customers/{id} [put]
 func (ch *customerHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -103,6 +147,17 @@ func (ch *customerHandler) Update(c *gin.Context) {
 		"customer": customer})
 }
 
+// Delete godoc
+// @Summary Delete a customer
+// @Description Delete a customer by their ID
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param id path string true "Customer ID"
+// @Success 200 {object} domain.Customer
+// @Failure 400
+// @Failure 500
+// @Router /api/customer_service/customers/{id} [delete]
 func (ch *customerHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {

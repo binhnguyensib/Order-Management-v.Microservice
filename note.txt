@@ -1,0 +1,8 @@
+Thêm xong hết swagger cho cart, product, customer rồi:
+- Test cho xong api  trong swagger -> viết Readme 
+- Thêm logger và cache cho customer, cart
+--------------------------------------------------------------------------------------------------------------------
+Cần update thêm:
+Order service ( xem thêm bussiness logic )
+Notification service ( gửi email khi đăng ký tài khoản và khi đặt đơn hàng thành công )
+Shipment service ( chưa có ý tưởng )
