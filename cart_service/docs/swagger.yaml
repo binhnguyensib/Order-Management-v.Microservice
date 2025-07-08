@@ -117,7 +117,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Add a product to the customer's cart
+      description: Update an existing item in customer's cart
       parameters:
       - description: Customer ID
         in: path
@@ -141,7 +141,7 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
-      summary: Add item to cart
+      summary: Update cart item
       tags:
       - Cart
   /api/cart_service/carts/{id}/item/{product_id}:

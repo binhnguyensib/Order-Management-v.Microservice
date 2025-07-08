@@ -73,7 +73,7 @@ func Run() {
 		api.POST("/carts/:id", cartHandler.AddToCart)
 		api.GET("/carts/:id", cartHandler.GetCartByCustomerId)
 		api.DELETE("/carts/:id", cartHandler.ClearCart)
-		api.PUT("/carts/item", cartHandler.UpdateCartItem)
+		api.PUT("/carts/:id", cartHandler.UpdateCartItem)
 		api.DELETE("/carts/:id/item/:product_id", cartHandler.RemoveCartItem)
 	}
 	port := os.Getenv("PORT")

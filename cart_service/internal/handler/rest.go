@@ -67,7 +67,7 @@ func (ch *cartHandler) GetCartByCustomerId(c *gin.Context) {
 }
 
 // AddToCart godoc
-// @Summary Add item to cart
+// @Summary Update cart item
 // @Description Update an existing item in customer's cart
 // @Tags Cart
 // @Accept json

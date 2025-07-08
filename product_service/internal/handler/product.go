@@ -53,7 +53,7 @@ func (ph *productHandler) GetAll(c *gin.Context) {
 // @Success 200 {object} domain.Product
 // @Failure 400
 // @Failure 500
-// @Router /products/{id} [get]
+// @Router /api/product_service/products/{id} [get]
 func (ph *productHandler) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -86,7 +86,7 @@ func (ph *productHandler) GetByID(c *gin.Context) {
 // @Success 201 {object} domain.Product
 // @Failure 400
 // @Failure 500
-// @Router /api/products [post]
+// @Router /api/product_service/products [post]
 func (ph *productHandler) Create(c *gin.Context) {
 	var productReq domain.ProductRequest
 	if err := c.ShouldBindJSON(&productReq); err != nil {
@@ -115,7 +115,7 @@ func (ph *productHandler) Create(c *gin.Context) {
 // @Success 200 {object} domain.Product
 // @Failure 400
 // @Failure 500
-// @Router /api/products/{id} [put]
+// @Router /api/product_service/products/{id} [put]
 func (ph *productHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -157,7 +157,7 @@ func (ph *productHandler) Update(c *gin.Context) {
 // @Success 200
 // @Failure 400
 // @Failure 500
-// @Router /api/products/{id} [delete]
+// @Router /api/product_service/products/{id} [delete]
 func (ph *productHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {

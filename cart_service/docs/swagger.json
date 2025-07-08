@@ -42,7 +42,7 @@
                 }
             },
             "put": {
-                "description": "Add a product to the customer's cart",
+                "description": "Update an existing item in customer's cart",
                 "consumes": [
                     "application/json"
                 ],
@@ -52,7 +52,7 @@
                 "tags": [
                     "Cart"
                 ],
-                "summary": "Add item to cart",
+                "summary": "Update cart item",
                 "parameters": [
                     {
                         "type": "string",
