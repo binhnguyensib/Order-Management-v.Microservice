@@ -9,11 +9,11 @@ import (
 	"cart_service/internal/usecase/helper"
 	pb "cart_service/proto/cart"
 	"cart_service/proto/product"
-	"log"
 	"net"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
@@ -26,16 +26,21 @@ import (
 // @description This is a sample server for managing orders, customers, products, and carts.
 // @host localhost:8083
 // @BasePath /api
+
+var Logger = logrus.New()
+
 func Run() {
 	db, err := config.ConnectMongoDB()
 	if err != nil {
-		panic("Error connecting to database")
+		Logger.Error("Error connecting to database")
 	}
 	defer db.Close()
 
+	config.InitRedis()
+
 	productClient, err := grpc.NewClient("localhost:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		panic(err)
+		Logger.Error("Error when create new gRPC client to Product service", err)
 	}
 
 	cartRepo := repository.NewCartRepository(db.DB)
@@ -44,18 +49,17 @@ func Run() {
 	cartMaper := helper.NewCartMapper(product.NewProductServiceClient(productClient))
 	grpcPort := os.Getenv("GRPC_PORT")
 	lis, err := net.Listen("tcp", ":"+grpcPort)
-
 	if err != nil {
-		print("error when starting gRPC")
+		Logger.Error("Error when starting gRPC server")
 	}
 	grpcServer := grpc.NewServer()
 	cartGRPCHandler := handler.NewCartGRPCHandler(cartUsecase, cartMaper)
 	pb.RegisterCartServiceServer(grpcServer, cartGRPCHandler)
 	reflection.Register(grpcServer)
 	go func() {
-		log.Printf("gRPC Server listening on :%s", grpcPort)
+		Logger.Infof("gRPC Server listening on :%s", grpcPort)
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve gRPC: %v", err)
+			Logger.Errorf("Failed to serve gRPC: %v", err)
 		}
 	}()
 
