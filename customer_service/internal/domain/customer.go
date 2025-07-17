@@ -1,46 +1,25 @@
 package domain
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type Customer struct {
-	Id       bson.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name     string        `bson:"name" json:"name"`
-	Email    string        `bson:"email" json:"email"`
-	Phone    string        `bson:"phone" json:"phone"`
-	Password string        `bson:"password" json:"-"`
+	Id        bson.ObjectID `bson:"_id,omitempty" json:"id"`
+	UserID    string        `bson:"user_ud" json:"user_id"`
+	Name      string        `bson:"name" json:"name"`
+	Email     string        `bson:"email" json:"email"`
+	Phone     string        `bson:"phone" json:"phone"`
+	Address   string        `bson:"address" json:"address"`
+	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time     `bson:"updated_at" json:"updated_at"`
 }
 
 type CustomerRequest struct {
-	Name  string `bson:"name" json:"name"`
-	Email string `bson:"email" json:"email"`
-	Phone string `bson:"phone" json:"phone"`
-}
-
-type CustomerRegister struct {
-	Name     string `bson:"name" json:"name"`
-	Email    string `bson:"email" json:"email"`
-	Phone    string `bson:"phone" json:"phone"`
-	Password string `bson:"password" json:"-"`
-}
-
-type CustomerLogin struct {
-	Email    string `bson:"email" json:"email"`
-	Password string `bson:"password" json:"-"`
-}
-
-func (c *Customer) HashPassword() bool {
-	hash, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return false
-	}
-	c.Password = string(hash)
-	return true
-}
-
-func (c *Customer) CheckPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(c.Password), []byte(password))
-	return err == nil
+	UserID string `bson:"user_id" json:"user_id"`
+	Name   string `bson:"name" json:"name"`
+	Email  string `bson:"email" json:"email"`
+	Phone  string `bson:"phone" json:"phone"`
 }

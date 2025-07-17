@@ -67,13 +67,16 @@ func Run() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	api := router.Group("/api")
+	admin := router.Group("/api/admin")
 	{
-		api.GET("/products", productHandler.GetAll)
-		api.GET("/products/:id", productHandler.GetByID)
-		api.POST("/products", productHandler.Create)
-		api.PUT("/products/:id", productHandler.Update)
-		api.DELETE("/products/:id", productHandler.Delete)
+		admin.POST("/products", productHandler.Create)
+		admin.PUT("/products/:id", productHandler.Update)
+		admin.DELETE("/products/:id", productHandler.Delete)
+	}
+	user := router.Group("/api/user")
+	{
+		user.GET("/products", productHandler.GetAll)
+		user.GET("/products/:id", productHandler.GetByID)
 	}
 	port := os.Getenv("PORT")
 	if port == "" {

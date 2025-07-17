@@ -1,8 +1,12 @@
 Thêm xong hết swagger cho cart, product, customer rồi:
-- Test cho xong api  trong swagger -> viết Readme 
-- Thêm logger và cache cho customer, cart
+- Test cho xong api  trong swagger -> viết Readme (xong)
+- Thêm logger và cache cho customer, cart (xong)
+- Phân quyền user ( user, admin ) (ngày mai 11/7 gen lại docs swagger rồi test lại api)
 --------------------------------------------------------------------------------------------------------------------
 Cần update thêm:
-Order service ( xem thêm bussiness logic )
+Order service ( xem thêm bussiness logic ) (phân quyền xong rồi làm)
+Message Broker để xử lý bất đồng bộ (  Redis pub/sub hoặc RabbitMQ) (Xong order rồi làm)
 Notification service ( gửi email khi đăng ký tài khoản và khi đặt đơn hàng thành công )
+    : - Tạo user -> message queue -> tạo customer , gửi mail 
+    : - Thanh toán xong -> message queue -> gửi mail, tạo shipment
 Shipment service ( chưa có ý tưởng )

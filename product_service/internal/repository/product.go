@@ -58,7 +58,7 @@ func (pr *productRepositoryImpl) GetByID(ctx context.Context, id string) (*domai
 	if err == nil && cached != "" {
 		var p domain.Product
 		if ummarshalErr := json.Unmarshal([]byte(cached), &p); ummarshalErr == nil {
-			fmt.Println("Cache hit for", redisKey)
+			Logger.Info("Cache hit for", redisKey)
 			return &p, nil
 		}
 	}
@@ -140,7 +140,7 @@ func (pr *productRepositoryImpl) Update(ctx context.Context, id string, productR
 	if result.Err() != nil {
 
 		if result.Err() == mongo.ErrNoDocuments {
-			return nil, err
+			return nil, result.Err()
 		}
 		return nil, result.Err()
 	}

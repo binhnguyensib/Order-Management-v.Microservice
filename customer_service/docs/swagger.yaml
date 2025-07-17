@@ -1,6 +1,10 @@
 definitions:
   domain.Customer:
     properties:
+      address:
+        type: string
+      created_at:
+        type: string
       email:
         type: string
       id:
@@ -8,6 +12,10 @@ definitions:
       name:
         type: string
       phone:
+        type: string
+      updated_at:
+        type: string
+      user_id:
         type: string
     type: object
   domain.CustomerRequest:
@@ -22,7 +30,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/customer_service/customers:
+  /api/admin/customer_service/customers:
     get:
       consumes:
       - application/json
@@ -68,7 +76,7 @@ paths:
       summary: Create a new customer
       tags:
       - Customers
-  /api/customer_service/customers/{id}:
+  /api/admin/customer_service/customers/{id}:
     delete:
       consumes:
       - application/json
@@ -93,6 +101,7 @@ paths:
       summary: Delete a customer
       tags:
       - Customers
+  /api/user/customer_service/customers/{id}:
     get:
       consumes:
       - application/json

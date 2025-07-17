@@ -1,15 +1,19 @@
 package app
 
 import (
+	"context"
 	"customer_service/config"
 	_ "customer_service/docs"
 	"customer_service/grpc"
+	"customer_service/internal/consumer"
 	"customer_service/internal/handler"
 	"customer_service/internal/repository"
 	"customer_service/internal/usecase"
 	cs "customer_service/proto"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -38,9 +42,42 @@ func Run() {
 
 	config.InitRedis()
 
+	rabbitConn, err := config.InitRabbitMQ()
+	if err != nil {
+		Logger.Errorf("Failed to connect to RabbitMQ: %v", err)
+	} else {
+		defer rabbitConn.Close()
+	}
+
 	customerRepo := repository.NewCustomerRepository(db.DB)
 	customerUsecase := usecase.NewCustomerUsecase(customerRepo)
 	customerHandler := handler.NewCustomerHandler(customerUsecase)
+
+	if rabbitConn != nil {
+		consumer := consumer.NewCustomerConsumer(rabbitConn, customerUsecase)
+		if err := consumer.Setup(); err != nil {
+			Logger.Errorf("Failed to setup consumer: %v", err)
+		} else {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			// Start consumer in background
+			go func() {
+				if err := consumer.Start(ctx); err != nil {
+					Logger.Errorf("Consumer failed: %v", err)
+				}
+			}()
+
+			// Handle graceful shutdown
+			go func() {
+				quit := make(chan os.Signal, 1)
+				signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+				<-quit
+				Logger.Info("Shutting down consumer...")
+				cancel()
+			}()
+		}
+	}
 	grpcPort := os.Getenv("GRPC_PORT")
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
@@ -67,13 +104,18 @@ func Run() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	api := router.Group("/api")
+	admin := router.Group("/api/admin")
 	{
-		api.GET("/customers", customerHandler.GetAll)
-		api.GET("/customers/:id", customerHandler.GetByID)
-		api.POST("/customers", customerHandler.Create)
-		api.PUT("/customers/:id", customerHandler.Update)
-		api.DELETE("/customers/:id", customerHandler.Delete)
+		admin.GET("/customers", customerHandler.GetAll)
+		admin.POST("/customers", customerHandler.Create)
+		admin.DELETE("/customers/:id", customerHandler.Delete)
+
+	}
+
+	user := router.Group("/api/user")
+	{
+		user.GET("/customers/:id", customerHandler.GetByID)
+		user.PUT("/customers/:id", customerHandler.Update)
 	}
 	port := os.Getenv("PORT")
 	if port == "" {

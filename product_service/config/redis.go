@@ -2,13 +2,16 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/sirupsen/logrus"
 )
 
-var rdb *redis.Client
+var (
+	rdb    *redis.Client
+	Logger = logrus.New()
+)
 
 func InitRedis() {
 	ctx := context.Background()
@@ -18,9 +21,9 @@ func InitRedis() {
 		DB:       0,
 	})
 	if _, err := rdb.Ping(ctx).Result(); err != nil {
-		panic(fmt.Sprintf("Unable to connect to Redis: %v", err))
+		Logger.Errorf("Unable to connect to Redis: %v", err)
 	}
-	fmt.Println("Connected to Redis")
+	Logger.Infof("Connected to Redis")
 }
 
 func Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {

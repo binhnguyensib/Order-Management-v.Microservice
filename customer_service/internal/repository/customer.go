@@ -101,13 +101,14 @@ func (cr *customerRepositoryImpl) Create(ctx context.Context, customer *domain.C
 	Logger.WithFields(logrus.Fields{
 		"method": "Create",
 		"id":     customerID,
-	}).Info("Add new product successfully")
+	}).Info("Add new customer successfully")
 
 	createdCustomer := &domain.Customer{
-		Id:    customerID,
-		Name:  customer.Name,
-		Email: customer.Email,
-		Phone: customer.Phone,
+		UserID: customer.UserID,
+		Id:     customerID,
+		Name:   customer.Name,
+		Email:  customer.Email,
+		Phone:  customer.Phone,
 	}
 
 	return createdCustomer, nil

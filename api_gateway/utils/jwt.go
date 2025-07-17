@@ -10,11 +10,12 @@ import (
 
 var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
-func GenerateJWT(email, uid string) (string, error) {
+func GenerateJWT(email, uid, role string) (string, error) {
 	expirationTime := time.Now().Add(time.Hour)
 	tokenClaims := &domain.TokenClaims{
 		Email:   email,
 		User_id: uid,
+		Role:    role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "Authentication service",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -22,11 +23,8 @@ func GenerateJWT(email, uid string) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
-	tokenString, err := token.SignedString(jwtSecret)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
+	return token.SignedString(jwtSecret)
+
 }
 
 func ParseJWT(tokenString string) (*domain.TokenClaims, error) {
@@ -41,15 +39,4 @@ func ParseJWT(tokenString string) (*domain.TokenClaims, error) {
 		return nil, jwt.ErrSignatureInvalid
 	}
 	return tokenClaims, nil
-}
-
-func ValidateJWT(tokenString string) (string, error) {
-	tokenClaims, err := ParseJWT(tokenString)
-	if err != nil {
-		return "", err
-	}
-	if tokenClaims.ExpiresAt.Time.Before(time.Now()) {
-		return "", jwt.ErrTokenExpired
-	}
-	return tokenClaims.Email, nil
 }

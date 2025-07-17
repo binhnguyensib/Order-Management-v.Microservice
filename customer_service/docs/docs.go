@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/customer_service/customers": {
+        "/api/admin/customer_service/customers": {
             "get": {
                 "description": "Retrieve all customers",
                 "consumes": [
@@ -85,7 +85,45 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/customer_service/customers/{id}": {
+        "/api/admin/customer_service/customers/{id}": {
+            "delete": {
+                "description": "Delete a customer by their ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Delete a customer",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Customer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/user/customer_service/customers/{id}": {
             "get": {
                 "description": "Retrieve a customer by their ID",
                 "consumes": [
@@ -166,42 +204,6 @@ const docTemplate = `{
                         "description": "Internal Server Error"
                     }
                 }
-            },
-            "delete": {
-                "description": "Delete a customer by their ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Customers"
-                ],
-                "summary": "Delete a customer",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Customer ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.Customer"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
             }
         }
     },
@@ -209,6 +211,12 @@ const docTemplate = `{
         "domain.Customer": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -219,6 +227,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }

@@ -27,18 +27,29 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		tokenString := tokenParts[1]
-		email, err := utils.ValidateJWT(tokenString)
+		claims, err := utils.ParseJWT(tokenParts[1])
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error":   "Invalid token",
-				"message": err.Error(),
-			})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
-
-		c.Set("email", email)
+		c.Set("user_id", claims.User_id)
+		c.Set("email", claims.Email)
+		c.Set("role", claims.Role)
 		c.Next()
+	}
+}
+
+func RequireRole(allowedrRoles ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userRole := c.GetString("role")
+		for _, allowedRole := range allowedrRoles {
+			if userRole == allowedRole {
+				c.Next()
+				return
+			}
+		}
+		c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
+		c.Abort()
 	}
 }

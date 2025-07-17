@@ -9,13 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ReverseProxyMiddleware(target string, stripPrefix string) gin.HandlerFunc {
+func ReverseProxyMiddleware(target string, stripPattern string) gin.HandlerFunc {
 	targetURL, _ := url.Parse(target)
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
 	return func(c *gin.Context) {
-		// Chuyển /api/product_service/products -> /api/products
-		c.Request.URL.Path = "/api" + strings.TrimPrefix(c.Request.URL.Path, stripPrefix)
+		c.Request.URL.Path = strings.Replace(c.Request.URL.Path, stripPattern, "", 1)
 		c.Request.Host = targetURL.Host
 		proxy.ServeHTTP(c.Writer, c.Request)
 		c.Abort()

@@ -27,7 +27,7 @@ func NewCartHandler(cartUsecase domain.CartUsecase) *cartHandler {
 // @Success 200 {object} domain.Cart
 // @Failure 400
 // @Failure 500
-// @Router /api/cart_service/carts/{id} [post]
+// @Router /api/user/cart_service/carts/{id} [post]
 func (ch *cartHandler) AddToCart(c *gin.Context) {
 	ctx := c.Request.Context()
 	customerID := c.Param("id")
@@ -54,7 +54,7 @@ func (ch *cartHandler) AddToCart(c *gin.Context) {
 // @Success 200 {object} domain.Cart
 // @Failure 500
 // @Failure 400
-// @Router /api/cart_service/carts/{id} [get]
+// @Router /api/user/cart_service/carts/{id} [get]
 func (ch *cartHandler) GetCartByCustomerId(c *gin.Context) {
 	ctx := c.Request.Context()
 	customerID := c.Param("id")
@@ -77,7 +77,7 @@ func (ch *cartHandler) GetCartByCustomerId(c *gin.Context) {
 // @Success 200 {object} domain.Cart
 // @Failure 400
 // @Failure 500
-// @Router /api/cart_service/carts/{id} [put]
+// @Router /api/user/cart_service/carts/{id} [put]
 func (ch *cartHandler) UpdateCartItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	customerID := c.Param("id")
@@ -105,7 +105,7 @@ func (ch *cartHandler) UpdateCartItem(c *gin.Context) {
 // @Success 200 {object} domain.Cart
 // @Failure 400
 // @Failure 500
-// @Router /api/cart_service/carts/{id}/item/{product_id} [delete]
+// @Router /api/user/cart_service/carts/{id}/item/{product_id} [delete]
 func (ch *cartHandler) RemoveCartItem(c *gin.Context) {
 	ctx := c.Request.Context()
 	customerID := c.Param("id")
@@ -127,7 +127,7 @@ func (ch *cartHandler) RemoveCartItem(c *gin.Context) {
 // @Param id path string true "Customer ID"
 // @Success 200
 // @Failure 500
-// @Router /api/cart_service/carts/{id} [delete]
+// @Router /api/user/cart_service/carts/{id} [delete]
 func (ch *cartHandler) ClearCart(c *gin.Context) {
 	ctx := c.Request.Context()
 	customerID := c.Param("id")

@@ -22,27 +22,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/product_service/products:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve all products
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/domain.Product'
-            type: array
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
-      summary: Get all products
-      tags:
-      - Products
+  /api/admin/product_service/products:
     post:
       consumes:
       - application/json
@@ -68,7 +48,7 @@ paths:
       summary: Create a new product
       tags:
       - Products
-  /api/product_service/products/{id}:
+  /api/admin/product_service/products/{id}:
     delete:
       consumes:
       - application/json
@@ -89,30 +69,6 @@ paths:
         "500":
           description: Internal Server Error
       summary: Delete a product
-      tags:
-      - Products
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a product by its ID
-      parameters:
-      - description: Product ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.Product'
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
-      summary: Get product by ID
       tags:
       - Products
     put:
@@ -143,6 +99,52 @@ paths:
         "500":
           description: Internal Server Error
       summary: Update an existing product
+      tags:
+      - Products
+  /api/user/product_service/products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Product'
+            type: array
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Get all products
+      tags:
+      - Products
+  /api/user/product_service/products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Product'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Get product by ID
       tags:
       - Products
 swagger: "2.0"

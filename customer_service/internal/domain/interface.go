@@ -17,13 +17,3 @@ type CustomerRepository interface {
 	Update(ctx context.Context, id string, customerReq *CustomerRequest) (*Customer, error)
 	Delete(ctx context.Context, id string) (*Customer, error)
 }
-
-type AuthUsecase interface {
-	Register(ctx context.Context, req *CustomerRegister) (*Customer, error)
-	Login(ctx context.Context, req *CustomerLogin) (*Customer, string, error)
-}
-
-type AuthRepository interface {
-	Register(ctx context.Context, customer *Customer) error
-	Login(ctx context.Context, email string) (*Customer, error)
-}

@@ -26,7 +26,7 @@ func NewCustomerHandler(customerUsecase domain.CustomerUsecase) *customerHandler
 // @Success 200 {array} domain.Customer
 // @Failure 500
 // @Failure 400
-// @Router /api/customer_service/customers [get]
+// @Router /api/admin/customer_service/customers [get]
 func (ch *customerHandler) GetAll(c *gin.Context) {
 	customers, err := ch.customerUsecase.GetAll(c.Request.Context())
 	if err != nil {
@@ -52,7 +52,7 @@ func (ch *customerHandler) GetAll(c *gin.Context) {
 // @Success 200 {object} domain.Customer
 // @Failure 400
 // @Failure 500
-// @Router /api/customer_service/customers/{id} [get]
+// @Router /api/user/customer_service/customers/{id} [get]
 func (ch *customerHandler) GetByID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -85,7 +85,7 @@ func (ch *customerHandler) GetByID(c *gin.Context) {
 // @Success 201 {object} domain.Customer
 // @Failure 400
 // @Failure 500
-// @Router /api/customer_service/customers [post]
+// @Router /api/admin/customer_service/customers [post]
 func (ch *customerHandler) Create(c *gin.Context) {
 	var customerReq domain.CustomerRequest
 	if err := c.ShouldBindJSON(&customerReq); err != nil {
@@ -115,7 +115,7 @@ func (ch *customerHandler) Create(c *gin.Context) {
 // @Success 200 {object} domain.Customer
 // @Failure 400
 // @Failure 500
-// @Router /api/customer_service/customers/{id} [put]
+// @Router /api/user/customer_service/customers/{id} [put]
 func (ch *customerHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -157,7 +157,7 @@ func (ch *customerHandler) Update(c *gin.Context) {
 // @Success 200 {object} domain.Customer
 // @Failure 400
 // @Failure 500
-// @Router /api/customer_service/customers/{id} [delete]
+// @Router /api/admin/customer_service/customers/{id} [delete]
 func (ch *customerHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {

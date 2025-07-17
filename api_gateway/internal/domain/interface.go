@@ -9,5 +9,6 @@ type AuthRepository interface {
 
 type AuthUsecase interface {
 	Register(ctx context.Context, req *RegisterRequest) (*User, error)
+	RegisterAdmin(ctx context.Context, req *RegisterRequest) (*User, error)
 	Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error)
 }

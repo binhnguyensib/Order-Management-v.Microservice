@@ -4,12 +4,15 @@ import (
 	"product_service/internal/app"
 
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
+
+var Logger = logrus.New()
 
 func init() {
 	err := godotenv.Load(".env")
 	if err != nil {
-		panic("Error loading .env file")
+		Logger.Errorf("Error loading .env file")
 	}
 }
 

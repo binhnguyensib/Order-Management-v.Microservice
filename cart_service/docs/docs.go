@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/cart_service/carts/{id}": {
+        "/api/user/cart_service/carts/{id}": {
             "get": {
                 "description": "Retrieve the cart for a specific customer",
                 "consumes": [
@@ -173,7 +173,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/cart_service/carts/{id}/item/{product_id}": {
+        "/api/user/cart_service/carts/{id}/item/{product_id}": {
             "delete": {
                 "description": "Remove a product from the customer's cart",
                 "consumes": [
