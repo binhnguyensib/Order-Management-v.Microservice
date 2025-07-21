@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -16,11 +18,15 @@ const (
 )
 
 type Order struct {
-	Id         bson.ObjectID `bson:"_id,omitempty"`
-	CustomerID string
-	Items      []*OrderItem
-	TotalItems int
-	TotalPrice float64
+	Id           bson.ObjectID `bson:"_id,omitempty"`
+	CustomerID   string
+	Items        []*OrderItem
+	TotalItems   int
+	TotalPrice   float64
+	Status       OrderStatus
+	ShippingInfo ShippingInfo
+	CreateAt     time.Time
+	UpdateAt     time.Time
 }
 
 type OrderItem struct {
@@ -29,4 +35,11 @@ type OrderItem struct {
 	ProductPrice float64
 	Quantity     int
 	Subtotal     float64
+}
+
+type ShippingInfo struct {
+	Name        string
+	Phone       string
+	City        string
+	ShippingFee float64
 }
