@@ -8,10 +8,10 @@ import (
 	"product_service/config"
 	_ "product_service/docs"
 	"product_service/grpc"
-	"product_service/internal/cronservice"
 	"product_service/internal/handler"
 	"product_service/internal/repository"
 	"product_service/internal/usecase"
+	cronservice "product_service/internal/worker"
 	pb "product_service/proto"
 	"time"
 
