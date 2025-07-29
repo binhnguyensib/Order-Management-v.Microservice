@@ -32,10 +32,13 @@ func (pcs *productCronService) Start() {
 	pcs.cron.AddFunc("0 21 * * *", func() {
 		now := time.Now()
 		formattedDate := now.Format("20060102")
-		result := "price_update_" + formattedDate + ".xlsx"
+		filename := "price_update_" + formattedDate + ".xlsx"
+		filepath := filepath.Join(pcs.supplierDir, filename)
+
 		var report *domain.BulkPriceUpdateResult
 		var ctx = context.Background()
-		report, err := pcs.productUsecase.UpdatePricesFromExcel(ctx, result)
+
+		report, err := pcs.productUsecase.UpdatePricesFromExcel(ctx, filepath)
 		if err != nil {
 			pcs.logger.WithError(err).Error("Failed to update prices from Excel")
 			return
@@ -49,8 +52,10 @@ func (pcs *productCronService) Start() {
 		formattedDate := now.Format("20060102")
 		filename := "price_update_" + formattedDate + ".xlsx"
 		filepath := filepath.Join(pcs.supplierDir, filename)
+
 		var report *domain.BulkPriceUpdateResult
 		var ctx = context.Background()
+
 		report, err := pcs.productUsecase.UpdatePricesFromExcel(ctx, filepath)
 		if err != nil {
 			pcs.logger.WithError(err).Error("Failed to update prices from Excel")
