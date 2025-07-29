@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"product_service/internal/domain"
 	"time"
@@ -89,6 +90,47 @@ func (pr *productRepositoryImpl) GetByID(ctx context.Context, id string) (*domai
 			"method": "GetByID",
 			"id":     id}).Info("Fetch product from DB")
 	return &product, nil
+}
+
+func (pr *productRepositoryImpl) GetAndUpdateByName(ctx context.Context, name string, newPrice float64) (*domain.PriceUpdateResult, error) {
+	collection := pr.conn.Collection("products")
+	filter := bson.M{"name": name}
+	update := bson.M{"$set": bson.M{"price": newPrice}}
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.Before)
+	result := collection.FindOneAndUpdate(ctx, filter, update, opts)
+
+	if result.Err() != nil {
+		if errors.Is(result.Err(), mongo.ErrNoDocuments) {
+			return &domain.PriceUpdateResult{
+				ProductName: name,
+				NewPrice:    newPrice,
+				Status:      "not_found",
+				Message:     fmt.Sprintf("product with name %s not found", name),
+			}, nil
+		}
+		return nil, result.Err()
+	}
+
+	var productBeforeUpdate domain.Product
+	err := result.Decode(&productBeforeUpdate)
+	if err != nil {
+		return nil, err
+	}
+
+	Logger.WithFields(logrus.Fields{
+		"method":   "GetAndUpdateByName",
+		"name":     name,
+		"oldPrice": productBeforeUpdate.Price,
+		"newPrice": newPrice,
+	}).Info("Product price updated successfully")
+
+	return &domain.PriceUpdateResult{
+		ProductName: productBeforeUpdate.Name,
+		OldPrice:    productBeforeUpdate.Price,
+		NewPrice:    newPrice,
+		Status:      "success",
+		Message:     "Product price updated successfully",
+	}, nil
 }
 
 func (pr *productRepositoryImpl) Create(ctx context.Context, product *domain.ProductRequest) (*domain.Product, error) {

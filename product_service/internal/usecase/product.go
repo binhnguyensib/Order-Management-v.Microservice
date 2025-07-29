@@ -2,7 +2,11 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"product_service/internal/domain"
+	"strconv"
+
+	"github.com/xuri/excelize/v2"
 )
 
 var _ domain.ProductUsecase = (*productUsecaseImpl)(nil)
@@ -55,4 +59,61 @@ func (pu *productUsecaseImpl) Delete(ctx context.Context, id string) (*domain.Pr
 		return nil, err
 	}
 	return productDeleted, nil
+}
+
+func (pu *productUsecaseImpl) UpdatePricesFromExcel(ctx context.Context, filePath string) (*domain.BulkPriceUpdateResult, error) {
+	f, err := excelize.OpenFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	sheetName := f.GetSheetName(0)
+	if sheetName == "" {
+		return nil, fmt.Errorf("no sheet found in excel file")
+	}
+
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rows from sheet: %w", err)
+	}
+
+	response := &domain.BulkPriceUpdateResult{
+		Results: make([]*domain.PriceUpdateResult, 0),
+	}
+
+	for i, row := range rows {
+		if i == 0 {
+			continue
+		}
+		if len(row) < 2 {
+			continue
+		}
+		productName := row[0]
+		newPrice, err := strconv.ParseFloat(row[1], 64)
+		if err != nil {
+			continue
+		}
+
+		result, err := pu.productRepo.GetAndUpdateByName(ctx, productName, newPrice)
+		if err != nil {
+			response.Results = append(response.Results, &domain.PriceUpdateResult{
+				ProductName: productName,
+				NewPrice:    newPrice,
+				Status:      "error",
+				Message:     fmt.Sprintf("failed to update price: %v", err),
+			})
+			continue
+		}
+
+		response.Results = append(response.Results, result)
+		response.TotalProcessed++
+		if result.Status == "success" {
+			response.TotalSuccess++
+		} else {
+			response.TotalFailed++
+		}
+	}
+
+	return response, nil
 }

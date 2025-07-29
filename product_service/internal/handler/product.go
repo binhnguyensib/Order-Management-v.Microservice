@@ -168,3 +168,24 @@ func (ph *productHandler) Delete(c *gin.Context) {
 		"product": product,
 	})
 }
+
+func (ph *productHandler) SupplierUpload(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File is required"})
+		return
+	}
+
+	if file.Size == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File cannot be empty"})
+		return
+	}
+
+	filePath := "./supplier/" + file.Filename
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "File uploaded successfully"})
+}

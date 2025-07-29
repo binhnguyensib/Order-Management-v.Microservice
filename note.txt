@@ -10,3 +10,8 @@ Notification service ( gửi email khi đăng ký tài khoản và khi đặt đ
     : - Tạo user -> message queue -> tạo customer , gửi mail 
     : - Thanh toán xong -> message queue -> gửi mail, tạo shipment
 Shipment service ( chưa có ý tưởng )
+---------------------------------------------------------------------------------------------------------------------
+29/7:
+- Upload file price_update_20250728 (định dạng yyyy/mm/dd).
+- CronService (update giá hàng ngày vào lúc 21:00 , lấy data theo file .xlsx theo đúng định dạng ngày).
+- Sau khi update xong, lưu ResponsePriceUpdate vào folder Log.  
